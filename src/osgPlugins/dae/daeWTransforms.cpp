@@ -154,7 +154,7 @@ void daeWriter::apply( osg::PositionAttitudeTransform &node )
             scale->getValue().append3( s.x(), s.y(), s.z() );
         }
 
-        double angle;
+        osg::Quat::value_type angle;
         osg::Vec3 axis;
         q.getRotate( angle, axis );
         if ( angle != 0 )
