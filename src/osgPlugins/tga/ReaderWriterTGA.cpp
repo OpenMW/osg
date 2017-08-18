@@ -406,7 +406,8 @@ int *numComponents_ret)
                 dest += lineoffset;
             }
             
-            delete formattedMap;
+            if (formattedMap)
+				delete[] formattedMap;
         }
         break;
         case 2:                  /* RGB, uncompressed */
