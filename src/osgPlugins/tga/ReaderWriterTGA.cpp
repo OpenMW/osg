@@ -176,19 +176,19 @@ static int getInt16(unsigned char *ptr)
 
 static int getInt24(unsigned char *ptr)
 {
-	int temp1 = ptr[0];
-	int temp2 = ptr[1];
-	int temp3 = ptr[2];
-	return temp1 | (temp2 << 8) | (temp3 << 16);
+    int temp1 = ptr[0];
+    int temp2 = ptr[1];
+    int temp3 = ptr[2];
+    return temp1 | (temp2 << 8) | (temp3 << 16);
 }
 
 static int getInt32(unsigned char *ptr)
 {
-	int temp1 = ptr[0];
-	int temp2 = ptr[1];
-	int temp3 = ptr[2];
-	int temp4 = ptr[3];
-	return temp1 | (temp2 << 8) | (temp3 << 16) | (temp4 << 24);
+    int temp1 = ptr[0];
+    int temp2 = ptr[1];
+    int temp3 = ptr[2];
+    int temp4 = ptr[3];
+    return temp1 | (temp2 << 8) | (temp3 << 16) | (temp4 << 24);
 }
 
 
@@ -274,7 +274,7 @@ int *numComponents_ret)
     int flags;
     int format;
     unsigned char *colormap;
-	int colormapLen;
+    int colormapLen;
     int indexsize;
     int rleIsCompressed;
     int rleRemaining;
@@ -321,23 +321,23 @@ int *numComponents_ret)
         colormap = new unsigned char [colormapLen*indexsize];
         fin.read((char*)colormap,colormapLen*indexsize);
 
-		if (indexsize == 2)          /* 16 bits */
-		{
-			if (flags & 1) format = 4;
-			else format = 3;
-		}
-		else
-			format = indexsize;
+        if (indexsize == 2)          /* 16 bits */
+        {
+            if (flags & 1) format = 4;
+            else format = 3;
+        }
+        else
+            format = indexsize;
     }
-	else
-	{
-		if (depth == 2)              /* 16 bits */
-		{
-			if (flags & 1) format = 4;
-			else format = 3;
-		}
-		else format = depth;
-	}
+    else
+    {
+        if (depth == 2)              /* 16 bits */
+        {
+            if (flags & 1) format = 4;
+            else format = 3;
+        }
+        else format = depth;
+    }
 
     /*    SoDebugError::postInfo("simage_tga_load", "TARGA file: %d %d %d %d %d\n",  */
     /*               type, width, height, depth, format); */
@@ -361,52 +361,52 @@ int *numComponents_ret)
     {
         case 1:                  /* colormap, uncompressed */
         {
-			unsigned char * formattedMap = new unsigned char[colormapLen * format];
-			for (int i = 0; i < colormapLen; i++)
-			{
-				convert_data(colormap, formattedMap, i, indexsize, format);
-			}
-			
-			int x, y;
-			for (y = 0; y < height; y++)
-			{
-				fin.read((char*)linebuf, width*depth);
-				if (fin.gcount() != (std::streamsize) (width*depth))
-				{
-					tgaerror = ERR_READ;
-					break;
-				}
+            unsigned char * formattedMap = new unsigned char[colormapLen * format];
+            for (int i = 0; i < colormapLen; i++)
+            {
+                convert_data(colormap, formattedMap, i, indexsize, format);
+            }
+            
+            int x, y;
+            for (y = 0; y < height; y++)
+            {
+                fin.read((char*)linebuf, width*depth);
+                if (fin.gcount() != (std::streamsize) (width*depth))
+                {
+                    tgaerror = ERR_READ;
+                    break;
+                }
 
-				for (x = 0; x < width; x++)
-				{
-					int index;
-					switch (depth)
-					{
-					case 1:
-						index = linebuf[x];
-						break;
-					case 2:
-						index = getInt16(linebuf + x * 2);
-						break;
-					case 3:
-						index = getInt24(linebuf + x * 3);
-						break;
-					case 4:
-						index = getInt32(linebuf + x * 4);
-						break;
-					default:
-						tgaerror = ERR_UNSUPPORTED;
-						break;
-					}
+                for (x = 0; x < width; x++)
+                {
+                    int index;
+                    switch (depth)
+                    {
+                    case 1:
+                        index = linebuf[x];
+                        break;
+                    case 2:
+                        index = getInt16(linebuf + x * 2);
+                        break;
+                    case 3:
+                        index = getInt24(linebuf + x * 3);
+                        break;
+                    case 4:
+                        index = getInt32(linebuf + x * 4);
+                        break;
+                    default:
+                        tgaerror = ERR_UNSUPPORTED;
+                        break;
+                    }
 
-					int adjustedX = bLeftToRight ? x : (width - 1) - x;
-					for (int i = 0; i < format; i++)
-						(dest + adjustedX * format)[i] = (formattedMap + index * format)[i];
-				}
-				dest += lineoffset;
-			}
-			
-			delete formattedMap;
+                    int adjustedX = bLeftToRight ? x : (width - 1) - x;
+                    for (int i = 0; i < format; i++)
+                        (dest + adjustedX * format)[i] = (formattedMap + index * format)[i];
+                }
+                dest += lineoffset;
+            }
+            
+            delete formattedMap;
         }
         break;
         case 2:                  /* RGB, uncompressed */
