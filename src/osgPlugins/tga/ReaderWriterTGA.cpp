@@ -407,7 +407,7 @@ int *numComponents_ret)
             }
             
             if (formattedMap)
-				delete[] formattedMap;
+                delete[] formattedMap;
         }
         break;
         case 2:                  /* RGB, uncompressed */
