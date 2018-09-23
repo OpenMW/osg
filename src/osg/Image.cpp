@@ -683,7 +683,7 @@ unsigned int Image::computePixelSizeInBits(GLenum format,GLenum type)
     // which raises the question of how to actually query for these sizes...
     // will need to revisit this issue, for now just report an error.
     // this is possible a bit of mute point though as since the ARB compressed formats
-    // arn't yet used for storing images to disk, so its likely that users wont have
+    // aren't yet used for storing images to disk, so its likely that users wont have
     // osg::Image's for pixel formats set the ARB compressed formats, just using these
     // compressed formats as internal texture modes.  This is very much speculation though
     // if get the below error then its time to revist this issue :-)
@@ -998,7 +998,7 @@ int Image::computeNearestPowerOfTwo(int s,float bias)
     {
         // it isn't so lets find the closest power of two.
         // yes, logf and powf are slow, but this code should
-        // only be called during scene graph initilization,
+        // only be called during scene graph initialization,
         // if at all, so not critical in the greater scheme.
         float p2 = logf((float)s)/logf(2.0f);
         float rounded_p2 = floorf(p2+bias);
@@ -1518,7 +1518,7 @@ void Image::swap(osg::Image& rhs)
 
 void Image::scaleImage(int s,int t,int r, GLenum newDataType)
 {
-    if (_s==s && _t==t && _r==r) return;
+    if (_s==s && _t==t && _r==r && _dataType==newDataType) return;
 
     if (_data==NULL)
     {
@@ -2140,6 +2140,8 @@ Vec4 _readColor(GLenum pixelFormat, T* data,float scale)
         case(GL_DEPTH_COMPONENT):   //intentionally fall through and execute the code for GL_LUMINANCE
         case(GL_LUMINANCE):         { float l = float(*data++)*scale; return Vec4(l, l, l, 1.0f); }
         case(GL_ALPHA):             { float a = float(*data++)*scale; return Vec4(1.0f, 1.0f, 1.0f, a); }
+        case(GL_RED):               { float r = float(*data++)*scale; return Vec4(r, 1.0f, 1.0f, 1.0f); }
+        case(GL_RG):                { float r = float(*data++)*scale; float g = float(*data++)*scale; return Vec4(r, g, 1.0f, 1.0f); }
         case(GL_LUMINANCE_ALPHA):   { float l = float(*data++)*scale; float a = float(*data++)*scale; return Vec4(l,l,l,a); }
         case(GL_RGB):               { float r = float(*data++)*scale; float g = float(*data++)*scale; float b = float(*data++)*scale; return Vec4(r,g,b,1.0f); }
         case(GL_RGBA):              { float r = float(*data++)*scale; float g = float(*data++)*scale; float b = float(*data++)*scale; float a = float(*data++)*scale; return Vec4(r,g,b,a); }

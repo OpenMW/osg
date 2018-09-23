@@ -490,70 +490,41 @@ bool TextBase::computeMatrix(osg::Matrix& matrix, osg::State* state) const
         osg::Matrix modelview = state->getModelViewMatrix();
         osg::Matrix projection = state->getProjectionMatrix();
 
-        matrix.makeTranslate(-_offset);
+        osg::Matrix temp_matrix(modelview);
+        temp_matrix.setTrans(0.0,0.0,0.0);
 
         osg::Matrix rotate_matrix;
-        if (_autoRotateToScreen)
-        {
-            osg::Matrix temp_matrix(modelview);
-            temp_matrix.setTrans(0.0f,0.0f,0.0f);
+        rotate_matrix.invert(temp_matrix);
 
-            rotate_matrix.invert(temp_matrix);
-        }
-
+        matrix.makeTranslate(-_offset);
         matrix.postMultRotate(_rotation);
 
         if (_characterSizeMode!=OBJECT_COORDS)
         {
-            osg::Matrix M(rotate_matrix);
-            M.postMultTranslate(_position);
-            M.postMult(modelview);
-            osg::Matrix& P = projection;
+            typedef osg::Matrix::value_type value_type;
 
-            // compute the pixel size vector.
-
-            // pre adjust P00,P20,P23,P33 by multiplying them by the viewport window matrix.
-            // here we do it in short hand with the knowledge of how the window matrix is formed
-            // note P23,P33 are multiplied by an implicit 1 which would come from the window matrix.
-            // Robert Osfield, June 2002.
-
-            int width = 1280;
-            int height = 1024;
+            value_type width = 1280.0;
+            value_type height = 1024.0;
 
             const osg::Viewport* viewport = state->getCurrentViewport();
             if (viewport)
             {
-                width = static_cast<int>(viewport->width());
-                height = static_cast<int>(viewport->height());
+                width = static_cast<value_type>(viewport->width());
+                height = static_cast<value_type>(viewport->height());
             }
 
-            // scaling for horizontal pixels
-            float P00 = P(0,0)*width*0.5f;
-            float P20_00 = P(2,0)*width*0.5f + P(2,3)*width*0.5f;
-            osg::Vec3 scale_00(M(0,0)*P00 + M(0,2)*P20_00,
-                               M(1,0)*P00 + M(1,2)*P20_00,
-                               M(2,0)*P00 + M(2,2)*P20_00);
+            osg::Matrix mvpw = rotate_matrix * osg::Matrix::translate(_position) * modelview * projection * osg::Matrix::scale(width/2.0, height/2.0, 1.0);
 
-            // scaling for vertical pixels
-            float P10 = P(1,1)*height*0.5f;
-            float P20_10 = P(2,1)*height*0.5f + P(2,3)*height*0.5f;
-            osg::Vec3 scale_10(M(0,1)*P10 + M(0,2)*P20_10,
-                               M(1,1)*P10 + M(1,2)*P20_10,
-                               M(2,1)*P10 + M(2,2)*P20_10);
+            osg::Vec3d origin = osg::Vec3d(0.0, 0.0, 0.0) * mvpw;
+            osg::Vec3d left = osg::Vec3d(1.0, 0.0, 0.0) * mvpw - origin;
+            osg::Vec3d up = osg::Vec3d(0.0, 1.0, 0.0) * mvpw - origin;
 
-            float P23 = P(2,3);
-            float P33 = P(3,3);
+            // compute the pixel size vector.
+            value_type length_x = left.length();
+            value_type scale_x = length_x>0.0 ? 1.0/length_x : 1.0;
 
-            float pixelSizeVector_w = M(3,2)*P23 + M(3,3)*P33;
-
-            float pixelSizeVert=(_characterHeight*sqrtf(scale_10.length2()))/(pixelSizeVector_w*0.701f);
-            float pixelSizeHori=(_characterHeight/getCharacterAspectRatio()*sqrtf(scale_00.length2()))/(pixelSizeVector_w*0.701f);
-
-            // avoid nasty math by preventing a divide by zero
-            if (pixelSizeVert == 0.0f)
-               pixelSizeVert= 1.0f;
-            if (pixelSizeHori == 0.0f)
-               pixelSizeHori= 1.0f;
+            value_type length_y = up.length();
+            value_type scale_y = length_y>0.0 ? 1.0/length_y : 1.0;
 
             if (_glyphNormalized)
             {
@@ -563,19 +534,22 @@ bool TextBase::computeMatrix(osg::Matrix& matrix, osg::State* state) const
 
             if (_characterSizeMode==SCREEN_COORDS)
             {
-                float scale_font_vert=_characterHeight/pixelSizeVert;
-                float scale_font_hori=_characterHeight/getCharacterAspectRatio()/pixelSizeHori;
-
-                if (P10<0)
-                   scale_font_vert=-scale_font_vert;
-                matrix.postMultScale(osg::Vec3f(scale_font_hori, scale_font_vert, scale_font_hori));
+                matrix.postMultScale(osg::Vec3(scale_x, scale_y, scale_x));
             }
-            else if (pixelSizeVert>getFontHeight())
+            else
             {
-                float scale_font = getFontHeight()/pixelSizeVert;
-                matrix.postMultScale(osg::Vec3f(scale_font, scale_font, scale_font));
-            }
+                value_type pixelSizeVert = _characterHeight / scale_y;
 
+                // avoid nasty math by preventing a divide by zero
+                if (pixelSizeVert == 0.0)
+                pixelSizeVert = 1.0;
+
+                if (pixelSizeVert>getFontHeight())
+                {
+                    value_type scale_font = getFontHeight()/pixelSizeVert;
+                    matrix.postMultScale(osg::Vec3f(scale_font, scale_font, scale_font));
+                }
+            }
         }
 
         if (_autoRotateToScreen)

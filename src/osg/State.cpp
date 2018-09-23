@@ -18,6 +18,7 @@
 #include <osg/Drawable>
 #include <osg/ApplicationUsage>
 #include <osg/ContextData>
+#include <osg/PointSprite>
 #include <osg/os_utils>
 
 #include <sstream>
@@ -170,6 +171,12 @@ State::~State()
     //_vertexAttribArrayList.clear();
 }
 
+void State::setUseVertexAttributeAliasing(bool flag)
+{
+    _useVertexAttributeAliasing = flag;
+    if (_globalVertexArrayState.valid()) _globalVertexArrayState->assignAllDispatchers();
+}
+
 void State::initializeExtensionProcs()
 {
     if (_extensionProcsInitialized) return;
@@ -279,6 +286,17 @@ void State::initializeExtensionProcs()
         }
     }
 
+    // set the validity of Modes
+    {
+        bool pointSpriteModeValid = _glExtensions->isPointSpriteModeSupported;
+
+    #if defined( OSG_GLES1_AVAILABLE ) //point sprites don't exist on es 2.0
+        setModeValidity(GL_POINT_SPRITE_OES, pointSpriteModeValid);
+    #else
+        setModeValidity(GL_POINT_SPRITE_ARB, pointSpriteModeValid);
+    #endif
+    }
+
 
     _extensionProcsInitialized = true;
 
@@ -373,7 +391,7 @@ void State::reset()
         as.changed = true;
     }
 
-    // we can do a straight clear, we arn't interested in GL_DEPTH_TEST defaults in texture modes.
+    // we can do a straight clear, we aren't interested in GL_DEPTH_TEST defaults in texture modes.
     for(TextureModeMapList::iterator tmmItr=_textureModeMapList.begin();
         tmmItr!=_textureModeMapList.end();
         ++tmmItr)
@@ -1316,7 +1334,7 @@ bool State::convertVertexShaderSourceToOsgBuiltIns(std::string& source) const
     std::string attributeQualifier("attribute ");
 
     // find the first legal insertion point for replacement declarations. GLSL requires that nothing
-    // precede a "#verson" compiler directive, so we must insert new declarations after it.
+    // precede a "#version" compiler directive, so we must insert new declarations after it.
     std::string::size_type declPos = source.rfind( "#version " );
     if ( declPos != std::string::npos )
     {

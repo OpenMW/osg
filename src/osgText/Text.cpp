@@ -231,17 +231,17 @@ osg::StateSet* Text::createStateSet()
     stateset->setAttributeAndModes(program.get());
 
     {
-        DEBUG_MESSAGE<<"Using shaders/text.vert"<<std::endl;
+        DEBUG_MESSAGE<<"Using shaders/osgText_Text.vert"<<std::endl;
 
-        #include "shaders/text_vert.cpp"
-        program->addShader(osgDB::readRefShaderFileWithFallback(osg::Shader::VERTEX, "shaders/text.vert", text_vert));
+        #include "shaders/osgText_Text_vert.cpp"
+        program->addShader(osgDB::readRefShaderFileWithFallback(osg::Shader::VERTEX, "shaders/osgText_Text.vert", osgText_Text_vert));
     }
 
     {
-        DEBUG_MESSAGE<<"Using shaders/text.frag"<<std::endl;
+        DEBUG_MESSAGE<<"Using shaders/osgText_Text.frag"<<std::endl;
 
-        #include "shaders/text_frag.cpp"
-        program->addShader(osgDB::readRefShaderFileWithFallback(osg::Shader::FRAGMENT, "shaders/text.frag", text_frag));
+        #include "shaders/osgText_Text_frag.cpp"
+        program->addShader(osgDB::readRefShaderFileWithFallback(osg::Shader::FRAGMENT, "shaders/osgText_Text.frag", osgText_Text_frag));
     }
 
     return stateset.release();
@@ -471,6 +471,8 @@ void Text::computeGlyphRepresentation()
 
     // initialize bounding box, it will be expanded during glyph position calculation
     _textBB.init();
+
+    _textBB.set(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
 
     osg::Vec2 startOfLine_coords(0.0f,0.0f);
     osg::Vec2 cursor(startOfLine_coords);
@@ -804,21 +806,9 @@ void Text::computePositionsImplementation()
 
     if (_backdropType != NONE)
     {
-        float avg_width = 0.0f;
-        float avg_height = 0.0f;
-        bool is_valid_size;
 
-        // FIXME: OPTIMIZE: It is possible that this value has already been computed before
-        // from previous calls to this function. This might be worth optimizing.
-        is_valid_size = computeAverageGlyphWidthAndHeight(avg_width, avg_height);
-
-        // Finally, we have one more issue to deal with.
-        // Now that the text takes more space, we need
-        // to adjust the size of the bounding box.
-        if (!is_valid_size)
-        {
-            return;
-        }
+        float height = _characterHeight;
+        float width = height/getCharacterAspectRatio();
 
         // Finally, we have one more issue to deal with.
         // Now that the text takes more space, we need
@@ -829,9 +819,9 @@ void Text::computePositionsImplementation()
             {
                 _textBBWithMargin.set(
                     _textBBWithMargin.xMin(),
-                    _textBBWithMargin.yMin() - avg_height * _backdropVerticalOffset,
+                    _textBBWithMargin.yMin() - height * _backdropVerticalOffset,
                     _textBBWithMargin.zMin(),
-                    _textBBWithMargin.xMax() + avg_width * _backdropHorizontalOffset,
+                    _textBBWithMargin.xMax() + width * _backdropHorizontalOffset,
                     _textBBWithMargin.yMax(),
                     _textBBWithMargin.zMax()
                 );
@@ -843,7 +833,7 @@ void Text::computePositionsImplementation()
                     _textBBWithMargin.xMin(),
                     _textBBWithMargin.yMin(),
                     _textBBWithMargin.zMin(),
-                    _textBBWithMargin.xMax() + avg_width * _backdropHorizontalOffset,
+                    _textBBWithMargin.xMax() + width * _backdropHorizontalOffset,
                     _textBBWithMargin.yMax(),
                     _textBBWithMargin.zMax()
                 );
@@ -855,8 +845,8 @@ void Text::computePositionsImplementation()
                     _textBBWithMargin.xMin(),
                     _textBBWithMargin.yMin(),
                     _textBBWithMargin.zMin(),
-                    _textBBWithMargin.xMax() + avg_width * _backdropHorizontalOffset,
-                    _textBBWithMargin.yMax() + avg_height * _backdropVerticalOffset,
+                    _textBBWithMargin.xMax() + width * _backdropHorizontalOffset,
+                    _textBBWithMargin.yMax() + height * _backdropVerticalOffset,
                     _textBBWithMargin.zMax()
                 );
                 break;
@@ -865,7 +855,7 @@ void Text::computePositionsImplementation()
             {
                 _textBBWithMargin.set(
                     _textBBWithMargin.xMin(),
-                    _textBBWithMargin.yMin() - avg_height * _backdropVerticalOffset,
+                    _textBBWithMargin.yMin() - height * _backdropVerticalOffset,
                     _textBBWithMargin.zMin(),
                     _textBBWithMargin.xMax(),
                     _textBBWithMargin.yMax(),
@@ -880,7 +870,7 @@ void Text::computePositionsImplementation()
                     _textBBWithMargin.yMin(),
                     _textBBWithMargin.zMin(),
                     _textBBWithMargin.xMax(),
-                    _textBBWithMargin.yMax() + avg_height * _backdropVerticalOffset,
+                    _textBBWithMargin.yMax() + height * _backdropVerticalOffset,
                     _textBBWithMargin.zMax()
                 );
                 break;
@@ -888,8 +878,8 @@ void Text::computePositionsImplementation()
             case DROP_SHADOW_BOTTOM_LEFT:
             {
                 _textBBWithMargin.set(
-                    _textBBWithMargin.xMin() - avg_width * _backdropHorizontalOffset,
-                    _textBBWithMargin.yMin() - avg_height * _backdropVerticalOffset,
+                    _textBBWithMargin.xMin() - width * _backdropHorizontalOffset,
+                    _textBBWithMargin.yMin() - height * _backdropVerticalOffset,
                     _textBBWithMargin.zMin(),
                     _textBBWithMargin.xMax(),
                     _textBBWithMargin.yMax(),
@@ -900,7 +890,7 @@ void Text::computePositionsImplementation()
             case DROP_SHADOW_CENTER_LEFT:
             {
                 _textBBWithMargin.set(
-                    _textBBWithMargin.xMin() - avg_width * _backdropHorizontalOffset,
+                    _textBBWithMargin.xMin() - width * _backdropHorizontalOffset,
                     _textBBWithMargin.yMin(),
                     _textBBWithMargin.zMin(),
                     _textBBWithMargin.xMax(),
@@ -911,11 +901,11 @@ void Text::computePositionsImplementation()
             case DROP_SHADOW_TOP_LEFT:
             {
                 _textBBWithMargin.set(
-                    _textBBWithMargin.xMin() - avg_width * _backdropHorizontalOffset,
+                    _textBBWithMargin.xMin() - width * _backdropHorizontalOffset,
                     _textBBWithMargin.yMin(),
                     _textBBWithMargin.zMin(),
                     _textBBWithMargin.xMax(),
-                    _textBBWithMargin.yMax() + avg_height * _backdropVerticalOffset,
+                    _textBBWithMargin.yMax() + height * _backdropVerticalOffset,
                     _textBBWithMargin.zMax()
                 );
                 break;
@@ -923,11 +913,11 @@ void Text::computePositionsImplementation()
             case OUTLINE:
             {
                 _textBBWithMargin.set(
-                    _textBBWithMargin.xMin() - avg_width * _backdropHorizontalOffset,
-                    _textBBWithMargin.yMin() - avg_height * _backdropVerticalOffset,
+                    _textBBWithMargin.xMin() - width * _backdropHorizontalOffset,
+                    _textBBWithMargin.yMin() - height * _backdropVerticalOffset,
                     _textBBWithMargin.zMin(),
-                    _textBBWithMargin.xMax() + avg_width * _backdropHorizontalOffset,
-                    _textBBWithMargin.yMax() + avg_height * _backdropVerticalOffset,
+                    _textBBWithMargin.xMax() + width * _backdropHorizontalOffset,
+                    _textBBWithMargin.yMax() + height * _backdropVerticalOffset,
                     _textBBWithMargin.zMax()
                 );
                 break;
@@ -1116,7 +1106,9 @@ void Text::drawImplementationSinglePass(osg::State& state, const osg::Vec4& colo
 
     if ((_drawMode&(~TEXT))!=0 && !_decorationPrimitives.empty())
     {
+#if defined(OSG_GL_FIXED_FUNCTION_AVAILABLE)
         state.applyTextureMode(0,GL_TEXTURE_2D,osg::StateAttribute::OFF);
+#endif
         vas->disableColorArray(state);
         for(Primitives::const_iterator itr = _decorationPrimitives.begin();
             itr != _decorationPrimitives.end();
@@ -1127,7 +1119,9 @@ void Text::drawImplementationSinglePass(osg::State& state, const osg::Vec4& colo
 
             (*itr)->draw(state, usingVertexBufferObjects);
         }
+#if defined(OSG_GL_FIXED_FUNCTION_AVAILABLE)
         state.applyTextureMode(0,GL_TEXTURE_2D,osg::StateAttribute::ON);
+#endif
     }
 
     if (_drawMode & TEXT)
