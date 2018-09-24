@@ -82,10 +82,8 @@ Geometry::Geometry(const Geometry& geometry,const CopyOp& copyop):
 
 Geometry::~Geometry()
 {
-    // do dirty here to keep the getGLObjectSizeHint() estimate on the ball
-    dirtyGLObjects();
-
-    // no need to delete, all automatically handled by ref_ptr :-)
+    _stateset = 0;
+    Geometry::releaseGLObjects();
 }
 
 #define ARRAY_NOT_EMPTY(array) (array!=0 && array->getNumElements()!=0)
@@ -535,7 +533,7 @@ bool Geometry::getDrawElementsList(DrawElementsList& drawElementsList) const
 
 void Geometry::addVertexBufferObjectIfRequired(osg::Array* array)
 {
-    if (/*_useVertexBufferObjects &&*/ array->getBinding()==Array::BIND_PER_VERTEX)
+    if (/*_useVertexBufferObjects &&*/ array->getBinding()==Array::BIND_PER_VERTEX || array->getBinding()==Array::BIND_UNDEFINED)
     {
         if (!array->getVertexBufferObject())
         {
@@ -877,6 +875,12 @@ void Geometry::drawImplementation(RenderInfo& renderInfo) const
 
     State& state = *renderInfo.getState();
 
+    bool usingVertexBufferObjects = state.useVertexBufferObject(_supportsVertexBufferObjects && _useVertexBufferObjects);
+    bool usingVertexArrayObjects = usingVertexBufferObjects && state.useVertexArrayObject(_useVertexArrayObject);
+
+    osg::VertexArrayState* vas = state.getCurrentVertexArrayState();
+    vas->setVertexBufferObjectSupported(usingVertexBufferObjects);
+
     bool checkForGLErrors = state.getCheckForGLErrors()==osg::State::ONCE_PER_ATTRIBUTE;
     if (checkForGLErrors) state.checkGLErrors("start of Geometry::drawImplementation()");
 
@@ -892,13 +896,9 @@ void Geometry::drawImplementation(RenderInfo& renderInfo) const
 
     drawPrimitivesImplementation(renderInfo);
 
-    bool usingVertexBufferObjects = state.useVertexBufferObject(_supportsVertexBufferObjects && _useVertexBufferObjects);
-    bool usingVertexArrayObjects = usingVertexBufferObjects && state.useVertexArrayObject(_useVertexArrayObject);
-
     if (usingVertexBufferObjects && !usingVertexArrayObjects)
     {
         // unbind the VBO's if any are used.
-        osg::VertexArrayState* vas = state.getCurrentVertexArrayState();
         vas->unbindVertexBufferObject();
         vas->unbindElementBufferObject();
     }
@@ -1215,6 +1215,7 @@ Geometry* osg::createTexturedQuadGeometry(const Vec3& corner,const Vec3& widthVe
     } \
     if (array->getBinding() == binding) return; \
     array->setBinding(binding);\
+    if (binding==osg::Array::BIND_PER_VERTEX) addVertexBufferObjectIfRequired(array); \
     if (ab==3 /*osg::Geometry::BIND_PER_PRIMITIVE*/) _containsDeprecatedData = true; \
     dirtyGLObjects();
 

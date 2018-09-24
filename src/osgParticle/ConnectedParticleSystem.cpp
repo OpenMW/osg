@@ -50,7 +50,7 @@ Particle* ConnectedParticleSystem::createParticle(const Particle* ptemplate)
 
         if (_startParticle == Particle::INVALID_INDEX)
         {
-            // we are the fisrt particle create, so start the connect particle list
+            // we are the first particle create, so start the connect particle list
             _startParticle = particleIndex;
         }
 

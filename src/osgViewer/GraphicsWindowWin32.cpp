@@ -2012,7 +2012,7 @@ bool GraphicsWindowWin32::setWindowDecorationImplementation( bool decorated )
     error  = ::GetLastError();
     if (result==0 && error)
     {
-        reportErrorForScreen("GraphicsWindowWin32::setWindowDecoration() - Unable to set window extented style", _traits->screenNum, error);
+        reportErrorForScreen("GraphicsWindowWin32::setWindowDecoration() - Unable to set window extended style", _traits->screenNum, error);
         return false;
     }
 
@@ -2825,7 +2825,7 @@ LRESULT GraphicsWindowWin32::handleNativeWindowingEvent( HWND hwnd, UINT uMsg, W
             {
                 // Wojciech Lewandowski: 2011/09/12
                 // Skip CONTROL | MENU | SHIFT tests because we are polling exact left or right keys
-                // above return press for both right and left so we may end up with incosistent
+                // above return press for both right and left so we may end up with inconsistent
                 // modifier mask if we report left control & right control while only right was pressed
                 LONG rightSideCode = 0;
                 switch( i )
@@ -3147,15 +3147,9 @@ static RegisterWindowingSystemInterfaceProxy createWindowingSystemInterfaceProxy
 
 } // namespace OsgViewer
 
-#if 1
-REGISTER_WINDOWINGSYSTEMINTERFACE(Win32, Win32WindowingSystem)
-#else
-// declare C entry point for static compilation.
-extern "C" void OSGVIEWER_EXPORT graphicswindow_Win32(void)
-{
-    osg::GraphicsContext::setWindowingSystemInterface(osgViewer::Win32WindowingSystem::getInterface());
-}
-#endif
+
+extern "C" OSGVIEWER_EXPORT void graphicswindow_Win32(void) {}
+static osg::WindowingSystemInterfaceProxy<Win32WindowingSystem> s_proxy_Win32WindowingSystem("Win32");
 
 void GraphicsWindowWin32::raiseWindow()
 {
