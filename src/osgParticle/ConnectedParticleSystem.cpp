@@ -42,14 +42,14 @@ Particle* ConnectedParticleSystem::createParticle(const Particle* ptemplate)
     // OSG_NOTICE<<this<< " Creating particle "<<std::endl;
 
     Particle* particle = ParticleSystem::createParticle(ptemplate);
-    int particleIndex = (int)(particle - _particles[0]);
+    int particleIndex = (int)(particle - &_particles[0]);
 
     if (particle)
     {
 
         if (_startParticle == Particle::INVALID_INDEX)
         {
-            // we are the fisrt particle create, so start the connect particle list
+            // we are the first particle create, so start the connect particle list
             _startParticle = particleIndex;
         }
 
@@ -58,7 +58,7 @@ Particle* ConnectedParticleSystem::createParticle(const Particle* ptemplate)
             // OSG_NOTICE<<this<< " Connecting "<<_lastParticleCreated<<" to "<<particleIndex<<std::endl;
 
             // write up the last created particle to this new particle
-            _particles[_lastParticleCreated]->setNextParticle(particleIndex);
+            _particles[_lastParticleCreated].setNextParticle(particleIndex);
             particle->setPreviousParticle(_lastParticleCreated);
         }
 
@@ -76,7 +76,7 @@ void ConnectedParticleSystem::reuseParticle(int particleIndex)
 
     if (particleIndex<0 || particleIndex>=(int)_particles.size()) return;
 
-    Particle* particle = _particles[particleIndex];
+    Particle* particle = &_particles[particleIndex];
     int previous = particle->getPreviousParticle();
     int next = particle->getNextParticle();
 
@@ -95,12 +95,12 @@ void ConnectedParticleSystem::reuseParticle(int particleIndex)
     // the deletion of the this particle
     if (previous != Particle::INVALID_INDEX)
     {
-        _particles[previous]->setNextParticle(next);
+        _particles[previous].setNextParticle(next);
     }
 
     if (next != Particle::INVALID_INDEX)
     {
-        _particles[next]->setPreviousParticle(previous);
+        _particles[next].setPreviousParticle(previous);
     }
 
     // reset the next and previous particle entries of this particle
@@ -114,13 +114,28 @@ void ConnectedParticleSystem::reuseParticle(int particleIndex)
 
 void ConnectedParticleSystem::drawImplementation(osg::RenderInfo& renderInfo) const
 {
-    osg::State& state = *renderInfo.getState();
-    osg::GLBeginEndAdapter& gl = state.getGLBeginEndAdapter();
-
     ScopedReadLock lock(_readWriteMutex);
 
-    const Particle* particle = (_startParticle != Particle::INVALID_INDEX) ? _particles[_startParticle] : 0;
+    osg::State& state = *renderInfo.getState();
+
+    const Particle* particle = (_startParticle != Particle::INVALID_INDEX) ? &_particles[_startParticle] : 0;
     if (!particle) return;
+
+    ArrayData& ad = _bufferedArrayData[state.getContextID()];
+    if (!ad.vertices.valid())
+    {
+        ad.init();
+        ad.reserve(_particles.capacity()*2);
+    }
+
+    ad.clear();
+    ad.dirty();
+
+    // set up arrays and primitives ready to fill in
+    osg::Vec3Array& vertices = *ad.vertices;
+    osg::Vec4Array& colors = *ad.colors;
+    osg::Vec2Array& texcoords = *ad.texcoords2;
+    ArrayData::Primitives& primitives = ad.primitives;
 
 
     osg::Vec4 pixelSizeVector = osg::CullingSet::computePixelSizeVector(*state.getCurrentViewport(),state.getProjectionMatrix(),state.getModelViewMatrix());
@@ -134,21 +149,19 @@ void ConnectedParticleSystem::drawImplementation(osg::RenderInfo& renderInfo) co
     if (pixelSizeOfFirstParticle<1.0)
     {
         // draw the connected particles as a line
-        gl.Begin(GL_LINE_STRIP);
         while(particle != 0)
         {
 
             const osg::Vec4& color = particle->getCurrentColor();
             const osg::Vec3& pos = particle->getPosition();
-            gl.Color4f( color.r(), color.g(), color.b(), color.a() * particle->getCurrentAlpha());
-            gl.TexCoord2f( particle->getSTexCoord(), 0.5f );
-            gl.Vertex3fv(pos.ptr());
+            colors.push_back(osg::Vec4( color.r(), color.g(), color.b(), color.a() * particle->getCurrentAlpha()));
+            texcoords.push_back(osg::Vec2( particle->getSTexCoord(), 0.5f ));
+            vertices.push_back(pos);
 
-            const Particle* nextParticle = (particle->getNextParticle() != Particle::INVALID_INDEX) ? _particles[particle->getNextParticle()] : 0;
+            const Particle* nextParticle = (particle->getNextParticle() != Particle::INVALID_INDEX) ? &_particles[particle->getNextParticle()] : 0;
             if (nextParticle)
             {
-                const osg::Vec3& nextPos = nextParticle->getPosition();
-                osg::Vec3 startDelta = nextPos-pos;
+                osg::Vec3 startDelta = nextParticle->getPosition()-pos;
                 startDelta.normalize();
                 float distance2 = 0.0;
 
@@ -157,19 +170,18 @@ void ConnectedParticleSystem::drawImplementation(osg::RenderInfo& renderInfo) co
                     i<_maxNumberOfParticlesToSkip && ((distance2<maxPixelError2) && (nextParticle->getNextParticle()!=Particle::INVALID_INDEX));
                     ++i)
                 {
-                    nextParticle = _particles[nextParticle->getNextParticle()];
-                    const osg::Vec3& nextPos = nextParticle->getPosition();
-                    osg::Vec3 delta = nextPos-pos;
+                    nextParticle = &_particles[nextParticle->getNextParticle()];
+                    osg::Vec3 delta = nextParticle->getPosition()-pos;
                     distance2 = (delta^startDelta).length2();
                 }
             }
             particle = nextParticle;
         }
-        gl.End();
+
+        primitives.push_back(ArrayData::ModeCount(GL_LINE_STRIP, vertices.size()));
     }
     else
     {
-
         // draw the connected particles as a quad stripped aligned to be orthogonal to the eye
         osg::Matrix eyeToLocalTransform;
         eyeToLocalTransform.invert(state.getModelViewMatrix());
@@ -177,18 +189,17 @@ void ConnectedParticleSystem::drawImplementation(osg::RenderInfo& renderInfo) co
 
         osg::Vec3 delta(0.0f,0.0f,1.0f);
 
-        gl.Begin(GL_QUAD_STRIP);
         while(particle != 0)
         {
             const osg::Vec4& color = particle->getCurrentColor();
             const osg::Vec3& pos = particle->getPosition();
 
-            const Particle* nextParticle = (particle->getNextParticle() != Particle::INVALID_INDEX) ? _particles[particle->getNextParticle()] : 0;
+            const Particle* nextParticle = (particle->getNextParticle() != Particle::INVALID_INDEX) ? &_particles[particle->getNextParticle()] : 0;
 
             if (nextParticle)
             {
-                const osg::Vec3& nextPos = nextParticle->getPosition();
-                osg::Vec3 startDelta = nextPos-pos;
+                osg::Vec3 startDelta = nextParticle->getPosition()-pos;
+                delta = startDelta;
                 startDelta.normalize();
                 float distance2 = 0.0;
 
@@ -197,13 +208,11 @@ void ConnectedParticleSystem::drawImplementation(osg::RenderInfo& renderInfo) co
                     i<_maxNumberOfParticlesToSkip && ((distance2<maxPixelError2) && (nextParticle->getNextParticle()!=Particle::INVALID_INDEX));
                     ++i)
                 {
-                    nextParticle = _particles[nextParticle->getNextParticle()];
-                    const osg::Vec3& nextPos = nextParticle->getPosition();
-                    delta = nextPos-pos;
+                    nextParticle = &_particles[nextParticle->getNextParticle()];
+                    delta = nextParticle->getPosition()-pos;
                     distance2 = (delta^startDelta).length2();
                 }
 
-                delta = nextPos-pos;
             }
 
             osg::Vec3 normal( delta ^ (pos-eyeLocal));
@@ -213,17 +222,20 @@ void ConnectedParticleSystem::drawImplementation(osg::RenderInfo& renderInfo) co
             osg::Vec3 bottom(pos-normal);
             osg::Vec3 top(pos+normal);
 
-            gl.Color4f( color.r(), color.g(), color.b(), color.a() * particle->getCurrentAlpha());
+            colors.push_back(osg::Vec4( color.r(), color.g(), color.b(), color.a() * particle->getCurrentAlpha()));
+            texcoords.push_back( osg::Vec2( particle->getSTexCoord(), 0.0f ));
+            vertices.push_back(bottom);
 
-            gl.TexCoord2f( particle->getSTexCoord(), 0.0f );
-            gl.Vertex3fv(bottom.ptr());
-
-            gl.TexCoord2f( particle->getSTexCoord(), 1.0f );
-            gl.Vertex3fv(top.ptr());
+            colors.push_back(colors.back());
+            texcoords.push_back( osg::Vec2( particle->getSTexCoord(), 1.0f ));
+            vertices.push_back(top);
 
             particle = nextParticle;
         }
-        gl.End();
-    }
-}
 
+        primitives.push_back(ArrayData::ModeCount(GL_QUAD_STRIP, vertices.size()));
+    }
+
+    ad.dispatchArrays(state);
+    ad.dispatchPrimitives();
+}
