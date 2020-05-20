@@ -14,6 +14,7 @@
 #ifndef OSG_GLEXTENSIONS
 #define OSG_GLEXTENSIONS 1
 
+#include <osg/observer_ptr>
 #include <osg/Export>
 #include <osg/GLDefines>
 
@@ -830,8 +831,10 @@ class OSG_EXPORT GLExtensions : public osg::Referenced
         /** convenience wrapper around glObjectLabel that calls glObjectLabel if it's supported and using std::string as a label parameter.*/
         void debugObjectLabel(GLenum identifier, GLuint name, const std::string& label) const { if (glObjectLabel && !label.empty()) glObjectLabel(identifier, name, label.size(), label.c_str()); }
 
+        struct ExtensionData;
     protected:
         virtual ~GLExtensions();
+        observer_ptr<ExtensionData> _extensionData;
 };
 
 
