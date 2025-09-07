@@ -210,7 +210,7 @@
 
 # Modified by Lasse Oorni and Yao Wei Tjong for Urho3D
 
-cmake_minimum_required( VERSION 2.6.3 )
+cmake_minimum_required( VERSION 3.5 )
 
 # Urho3D: on Windows Cygwin-based NDK tools may fail in the linking phase with too long command line. Turn on response files to avoid this
 if( CMAKE_HOST_WIN32 )
