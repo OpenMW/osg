@@ -25,6 +25,10 @@ namespace OpenThreads {
 
 #if defined(_OPENTHREADS_ATOMIC_USE_LIBRARY_ROUTINES)
 
+#if defined(__ANDROID__)
+#error Not supported.
+#endif
+
 // Non inline implementations for two special cases:
 // * win32
 // * i386 gcc
