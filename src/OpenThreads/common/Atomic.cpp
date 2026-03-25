@@ -40,7 +40,9 @@ namespace OpenThreads {
 unsigned
 Atomic::operator++()
 {
-#if defined(_OPENTHREADS_ATOMIC_USE_GCC_BUILTINS)
+#if defined(_OPENTHREADS_ATOMIC_USE_STD_ATOMIC)
+    return ++_value;
+#elif defined(_OPENTHREADS_ATOMIC_USE_GCC_BUILTINS)
     return __sync_add_and_fetch(&_value, 1);
 #elif defined(_OPENTHREADS_ATOMIC_USE_WIN32_INTERLOCKED)
     return InterlockedIncrement(&_value);
@@ -54,7 +56,9 @@ Atomic::operator++()
 unsigned
 Atomic::operator--()
 {
-#if defined(_OPENTHREADS_ATOMIC_USE_GCC_BUILTINS)
+#if defined(_OPENTHREADS_ATOMIC_USE_STD_ATOMIC)
+    return --_value;
+#elif defined(_OPENTHREADS_ATOMIC_USE_GCC_BUILTINS)
     return __sync_sub_and_fetch(&_value, 1);
 #elif defined(_OPENTHREADS_ATOMIC_USE_WIN32_INTERLOCKED)
     return InterlockedDecrement(&_value);
@@ -68,7 +72,9 @@ Atomic::operator--()
 unsigned
 Atomic::AND(unsigned value)
 {
-#if defined(_OPENTHREADS_ATOMIC_USE_GCC_BUILTINS)
+#if defined(_OPENTHREADS_ATOMIC_USE_STD_ATOMIC)
+    return (_value &= value);
+#elif defined(_OPENTHREADS_ATOMIC_USE_GCC_BUILTINS)
     return __sync_fetch_and_and(&_value, value);
 #elif defined(_OPENTHREADS_ATOMIC_USE_WIN32_INTERLOCKED)
     return _InterlockedAnd(&_value, value);
@@ -82,7 +88,9 @@ Atomic::AND(unsigned value)
 unsigned
 Atomic::OR(unsigned value)
 {
-#if defined(_OPENTHREADS_ATOMIC_USE_GCC_BUILTINS)
+#if defined(_OPENTHREADS_ATOMIC_USE_STD_ATOMIC)
+    return (_value |= value);
+#elif defined(_OPENTHREADS_ATOMIC_USE_GCC_BUILTINS)
     return __sync_fetch_and_or(&_value, value);
 #elif defined(_OPENTHREADS_ATOMIC_USE_WIN32_INTERLOCKED)
     return _InterlockedOr(&_value, value);
@@ -96,7 +104,9 @@ Atomic::OR(unsigned value)
 unsigned
 Atomic::XOR(unsigned value)
 {
-#if defined(_OPENTHREADS_ATOMIC_USE_GCC_BUILTINS)
+#if defined(_OPENTHREADS_ATOMIC_USE_STD_ATOMIC)
+    return (_value ^= value);
+#elif defined(_OPENTHREADS_ATOMIC_USE_GCC_BUILTINS)
     return __sync_fetch_and_xor(&_value, value);
 #elif defined(_OPENTHREADS_ATOMIC_USE_WIN32_INTERLOCKED)
     return _InterlockedXor(&_value, value);
@@ -111,7 +121,9 @@ Atomic::XOR(unsigned value)
 unsigned
 Atomic::exchange(unsigned value)
 {
-#if defined(_OPENTHREADS_ATOMIC_USE_GCC_BUILTINS)
+#if defined(_OPENTHREADS_ATOMIC_USE_STD_ATOMIC)
+    return _value.exchange(value);
+#elif defined(_OPENTHREADS_ATOMIC_USE_GCC_BUILTINS)
     return __sync_lock_test_and_set(&_value, value);
 #elif defined(_OPENTHREADS_ATOMIC_USE_WIN32_INTERLOCKED)
     return InterlockedExchange(&_value, value);
@@ -125,7 +137,9 @@ Atomic::exchange(unsigned value)
 
 Atomic::operator unsigned() const
 {
-#if defined(_OPENTHREADS_ATOMIC_USE_GCC_BUILTINS)
+#if defined(_OPENTHREADS_ATOMIC_USE_STD_ATOMIC)
+    return _value;
+#elif defined(_OPENTHREADS_ATOMIC_USE_GCC_BUILTINS)
     __sync_synchronize();
     return _value;
 #elif defined(_OPENTHREADS_ATOMIC_USE_WIN32_INTERLOCKED)
@@ -142,7 +156,10 @@ Atomic::operator unsigned() const
 bool
 AtomicPtr::assign(void* ptrNew, const void* const ptrOld)
 {
-#if defined(_OPENTHREADS_ATOMIC_USE_GCC_BUILTINS)
+#if defined(_OPENTHREADS_ATOMIC_USE_STD_ATOMIC)
+    void *old = (void*) ptrOld;
+    return _ptr.compare_exchange_strong(old, ptrNew);
+#elif defined(_OPENTHREADS_ATOMIC_USE_GCC_BUILTINS)
     return __sync_bool_compare_and_swap(&_ptr, (void*)ptrOld, ptrNew);
 #elif defined(_OPENTHREADS_ATOMIC_USE_WIN32_INTERLOCKED)
     return ptrOld == InterlockedCompareExchangePointer((PVOID volatile*)&_ptr, (PVOID)ptrNew, (PVOID)ptrOld);
@@ -156,7 +173,9 @@ AtomicPtr::assign(void* ptrNew, const void* const ptrOld)
 void*
 AtomicPtr::get() const
 {
-#if defined(_OPENTHREADS_ATOMIC_USE_GCC_BUILTINS)
+#if defined(_OPENTHREADS_ATOMIC_USE_STD_ATOMIC)
+    return _ptr;
+#elif defined(_OPENTHREADS_ATOMIC_USE_GCC_BUILTINS)
     __sync_synchronize();
     return _ptr;
 #elif defined(_OPENTHREADS_ATOMIC_USE_WIN32_INTERLOCKED)

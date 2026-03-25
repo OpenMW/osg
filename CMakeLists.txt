@@ -314,7 +314,7 @@ INCLUDE_DIRECTORIES(SYSTEM ${OPENGL_INCLUDE_DIR})
 
 
 IF(WIN32 AND NOT ANDROID)
-    OPTION(OSG_DETERMINE_WIN_VERSION "Wheter to automatically determine current Windows version" ON)
+    OPTION(OSG_DETERMINE_WIN_VERSION "Whether to automatically determine current Windows version" ON)
 
     IF(OSG_DETERMINE_WIN_VERSION)
         # Check window version
@@ -352,7 +352,7 @@ IF(WIN32 AND NOT ANDROID)
         OPTION(MSVC_DISABLE_CHECKED_ITERATORS "Set to ON to disable Visual C++ checked iterators. If you do this you must ensure that every other project in your solution and all dependencies are compiled with _SECURE_SCL=0." OFF)
         MARK_AS_ADVANCED(MSVC_DISABLE_CHECKED_ITERATORS)
         IF(MSVC_DISABLE_CHECKED_ITERATORS)
-            ADD_DEFINITIONS(-D_ITERATOR_DEBUG_LEVEL=0) # this supercedes _SECURE_SCL and _HAS_ITERATOR_DEBUGGING in VS2010 and forward
+            ADD_DEFINITIONS(-D_ITERATOR_DEBUG_LEVEL=0) # this supersedes _SECURE_SCL and _HAS_ITERATOR_DEBUGGING in VS2010 and forward
             ADD_DEFINITIONS(-D_SECURE_SCL=0)
             ADD_DEFINITIONS(-D_HAS_ITERATOR_DEBUGGING=0)
         ENDIF()
@@ -429,7 +429,7 @@ ENDIF()
 
 OPTION(OSG_NOTIFY_DISABLED "Set to ON to build OpenSceneGraph with the notify() disabled." OFF)
 
-OPTION(OSG_USE_DEPRECATED_API "Set to ON to build OpenSceneGraph with the OSG_USE_DEPREFATED_API #define enabled to allow access to deprecated APIs ." ON)
+OPTION(OSG_USE_DEPRECATED_API "Set to ON to build OpenSceneGraph with the OSG_USE_DEPRECATED_API #define enabled to allow access to deprecated APIs ." ON)
 
 OPTION(OSG_USE_FLOAT_MATRIX "Set to ON to build OpenSceneGraph with float Matrix instead of double." OFF)
 MARK_AS_ADVANCED(OSG_USE_FLOAT_MATRIX)
@@ -598,7 +598,7 @@ ELSE()
     ENDIF()
 ENDIF()
 
-SET(OSG_GL_CONTEXT_VERSION ${DEFAULT_GL_CONTEXT_VERSION} CACHE STRING "GL Context String to pass when creaing graphics contexts")
+SET(OSG_GL_CONTEXT_VERSION ${DEFAULT_GL_CONTEXT_VERSION} CACHE STRING "GL Context String to pass when creating graphics contexts")
 
 IF (OSG_GL1_AVAILABLE)
     SET(OSG_GL1_FEATURES 1)
@@ -941,7 +941,7 @@ SET(CMAKE_INCLUDE_PATH ${CMAKE_INCLUDE_PATH} CACHE STRING "You may add additiona
 SET(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} CACHE STRING "You may add additional search paths here. Use ; to separate multiple paths.")
 # We are proposing that a new variable called CMAKE_PREFIX_PATH be introduced
 # to CMake to compliment CMAKE_INCLUDE_PATH and CMAKE_LIBRARY_PATH.
-# A formal feature request has been submited to CMake, Bug #4947.
+# A formal feature request has been submitted to CMake, Bug #4947.
 # It is intended for those users who have common prefixes for their INCLUDE
 # and LIBRARY locations. So if users have headers in /usr/local/include
 # and libraries in /usr/local/lib, the common prefix is /usr/local.
@@ -1135,7 +1135,7 @@ ENDIF()
 INCLUDE(${CMAKE_ROOT}/Modules/Documentation.cmake OPTIONAL)
 OPTION(BUILD_DOCUMENTATION "Build OpenSceneGraph reference documentation using doxygen (use: make doc_openscenegraph doc_openthreads)" OFF)
 MARK_AS_ADVANCED(CLEAR BUILD_DOCUMENTATION)
-# To build the documention, you will have to enable it
+# To build the documentation, you will have to enable it
 # and then do the equivalent of "make doc_openscenegraph doc_openthreads".
 IF(BUILD_DOCUMENTATION)
 

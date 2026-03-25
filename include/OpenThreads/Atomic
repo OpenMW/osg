@@ -17,7 +17,7 @@
 #include <OpenThreads/Config>
 #include <OpenThreads/Exports>
 
-#if defined(__ANDROID__)
+#if defined(_OPENTHREADS_ATOMIC_USE_STD_ATOMIC)
 # include <atomic>
 #elif defined(_OPENTHREADS_ATOMIC_USE_BSD_ATOMIC)
 # include <libkern/OSAtomic.h>
@@ -63,10 +63,10 @@ class OPENTHREAD_EXPORT_DIRECTIVE Atomic {
     Atomic(const Atomic&);
     Atomic& operator=(const Atomic&);
 
-#if defined(_OPENTHREADS_ATOMIC_USE_MUTEX) && !defined(__ANDROID__)
+#if defined(_OPENTHREADS_ATOMIC_USE_MUTEX)
     mutable Mutex _mutex;
 #endif
-#if defined(__ANDROID__)
+#if defined(_OPENTHREADS_ATOMIC_USE_STD_ATOMIC)
     std::atomic<unsigned> _value;
 #elif defined(_OPENTHREADS_ATOMIC_USE_WIN32_INTERLOCKED)
     volatile long _value;
@@ -99,10 +99,10 @@ private:
     AtomicPtr(const AtomicPtr&);
     AtomicPtr& operator=(const AtomicPtr&);
 
-#if defined(_OPENTHREADS_ATOMIC_USE_MUTEX) && !defined(__ANDROID__)
+#if defined(_OPENTHREADS_ATOMIC_USE_MUTEX)
     mutable Mutex _mutex;
 #endif
-#if defined(__ANDROID__)
+#if defined(_OPENTHREADS_ATOMIC_USE_STD_ATOMIC)
     std::atomic<void*> _ptr;
 #else
     void* volatile _ptr;
@@ -114,7 +114,7 @@ private:
 _OPENTHREADS_ATOMIC_INLINE unsigned
 Atomic::operator++()
 {
-#if defined(__ANDROID__)
+#if defined(_OPENTHREADS_ATOMIC_USE_STD_ATOMIC)
     return ++_value;
 #elif defined(_OPENTHREADS_ATOMIC_USE_GCC_BUILTINS)
     return __sync_add_and_fetch(&_value, 1);
@@ -133,7 +133,7 @@ Atomic::operator++()
 _OPENTHREADS_ATOMIC_INLINE unsigned
 Atomic::operator--()
 {
-#if defined(__ANDROID__)
+#if defined(_OPENTHREADS_ATOMIC_USE_STD_ATOMIC)
     return --_value;
 #elif defined(_OPENTHREADS_ATOMIC_USE_GCC_BUILTINS)
     return __sync_sub_and_fetch(&_value, 1);
@@ -152,7 +152,7 @@ Atomic::operator--()
 _OPENTHREADS_ATOMIC_INLINE unsigned
 Atomic::AND(unsigned value)
 {
-#if defined(__ANDROID__)
+#if defined(_OPENTHREADS_ATOMIC_USE_STD_ATOMIC)
     return (_value &= value);
 #elif defined(_OPENTHREADS_ATOMIC_USE_GCC_BUILTINS)
     return __sync_fetch_and_and(&_value, value);
@@ -173,7 +173,7 @@ Atomic::AND(unsigned value)
 _OPENTHREADS_ATOMIC_INLINE unsigned
 Atomic::OR(unsigned value)
 {
-#if defined(__ANDROID__)
+#if defined(_OPENTHREADS_ATOMIC_USE_STD_ATOMIC)
     return (_value |= value);
 #elif defined(_OPENTHREADS_ATOMIC_USE_GCC_BUILTINS)
     return __sync_fetch_and_or(&_value, value);
@@ -194,7 +194,7 @@ Atomic::OR(unsigned value)
 _OPENTHREADS_ATOMIC_INLINE unsigned
 Atomic::XOR(unsigned value)
 {
-#if defined(__ANDROID__)
+#if defined(_OPENTHREADS_ATOMIC_USE_STD_ATOMIC)
     return (_value ^= value);
 #elif defined(_OPENTHREADS_ATOMIC_USE_GCC_BUILTINS)
     return __sync_fetch_and_xor(&_value, value);
@@ -217,7 +217,7 @@ Atomic::XOR(unsigned value)
 _OPENTHREADS_ATOMIC_INLINE unsigned
 Atomic::exchange(unsigned value)
 {
-#if defined(__ANDROID__)
+#if defined(_OPENTHREADS_ATOMIC_USE_STD_ATOMIC)
     return _value.exchange(value);
 #elif defined(_OPENTHREADS_ATOMIC_USE_GCC_BUILTINS)
     return __sync_lock_test_and_set(&_value, value);
@@ -240,7 +240,7 @@ Atomic::exchange(unsigned value)
 _OPENTHREADS_ATOMIC_INLINE
 Atomic::operator unsigned() const
 {
-#if defined(__ANDROID__)
+#if defined(_OPENTHREADS_ATOMIC_USE_STD_ATOMIC)
     return _value;
 #elif defined(_OPENTHREADS_ATOMIC_USE_GCC_BUILTINS)
     __sync_synchronize();
@@ -262,7 +262,7 @@ Atomic::operator unsigned() const
 _OPENTHREADS_ATOMIC_INLINE bool
 AtomicPtr::assign(void* ptrNew, const void* const ptrOld)
 {
-#if defined(__ANDROID__)
+#if defined(_OPENTHREADS_ATOMIC_USE_STD_ATOMIC)
     void *old = (void*) ptrOld;
     return _ptr.compare_exchange_strong(old, ptrNew);
 #elif defined(_OPENTHREADS_ATOMIC_USE_GCC_BUILTINS)
@@ -288,7 +288,7 @@ AtomicPtr::assign(void* ptrNew, const void* const ptrOld)
 _OPENTHREADS_ATOMIC_INLINE void*
 AtomicPtr::get() const
 {
-#if defined(__ANDROID__)
+#if defined(_OPENTHREADS_ATOMIC_USE_STD_ATOMIC)
     return _ptr;
 #elif defined(_OPENTHREADS_ATOMIC_USE_GCC_BUILTINS)
     __sync_synchronize();

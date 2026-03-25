@@ -6,6 +6,7 @@ OPTION(OPENTHREADS_ATOMIC_USE_MUTEX "Set to ON to force OpenThreads to use a mut
 
 IF (OPENTHREADS_ATOMIC_USE_MUTEX)
 
+    SET(_OPENTHREADS_ATOMIC_USE_STD_ATOMIC 0)
     SET(_OPENTHREADS_ATOMIC_USE_GCC_BUILTINS 0)
     SET(_OPENTHREADS_ATOMIC_USE_MIPOSPRO_BUILTINS 0)
     SET(_OPENTHREADS_ATOMIC_USE_SUN 0)
@@ -17,6 +18,7 @@ IF (OPENTHREADS_ATOMIC_USE_MUTEX)
 ELSE()
     # as the test does not work for IOS hardcode the ATOMIC implementation
     IF(OSG_BUILD_PLATFORM_IPHONE_SIMULATOR OR OSG_BUILD_PLATFORM_IPHONE)
+       SET(_OPENTHREADS_ATOMIC_USE_STD_ATOMIC 0)
        SET(_OPENTHREADS_ATOMIC_USE_GCC_BUILTINS 0)
        SET(_OPENTHREADS_ATOMIC_USE_MIPOSPRO_BUILTINS 0)
        SET(_OPENTHREADS_ATOMIC_USE_SUN 0)
@@ -26,10 +28,36 @@ ELSE()
        SET(_OPENTHREADS_ATOMIC_USE_BSD_ATOMIC 1)
 
     ELSE()
-       INCLUDE(CheckCXXSourceRuns)
+       INCLUDE(CheckCXXSourceCompiles)
 
        # Do step by step checking,
-       CHECK_CXX_SOURCE_RUNS("
+       check_cxx_source_compiles("
+       #include <atomic>
+       #include <cstdlib>
+
+       int main()
+       {
+          std::atomic<unsigned> value{0};
+          std::atomic<void*> ptr{nullptr};
+          value.fetch_add(1, std::memory_order_acq_rel);
+          std::atomic_thread_fence(std::memory_order_seq_cst);
+          value.fetch_sub(1, std::memory_order_acq_rel);
+          unsigned expected = 0;
+
+          if (!value.compare_exchange_strong(expected, 1))
+             return EXIT_FAILURE;
+
+          void* expected_ptr = nullptr;
+          void* new_ptr = &value;
+
+          if (!ptr.compare_exchange_strong(expected_ptr, new_ptr))
+             return EXIT_FAILURE;
+
+          return EXIT_SUCCESS;
+       }
+       " _OPENTHREADS_ATOMIC_USE_STD_ATOMIC)
+
+       check_cxx_source_compiles("
        #include <cstdlib>
 
        int main()
@@ -49,7 +77,7 @@ ELSE()
        }
        " _OPENTHREADS_ATOMIC_USE_GCC_BUILTINS)
 
-       CHECK_CXX_SOURCE_RUNS("
+       check_cxx_source_compiles("
        #include <stdlib.h>
 
        int main(int, const char**)
@@ -69,7 +97,7 @@ ELSE()
        }
        " _OPENTHREADS_ATOMIC_USE_MIPOSPRO_BUILTINS)
 
-       CHECK_CXX_SOURCE_RUNS("
+       check_cxx_source_compiles("
        #include <atomic.h>
        #include <cstdlib>
 
@@ -90,7 +118,7 @@ ELSE()
        }
        " _OPENTHREADS_ATOMIC_USE_SUN)
 
-       CHECK_CXX_SOURCE_RUNS("
+       check_cxx_source_compiles("
        #include <windows.h>
        #include <intrin.h>
        #include <cstdlib>
@@ -119,7 +147,7 @@ ELSE()
        }
        " _OPENTHREADS_ATOMIC_USE_WIN32_INTERLOCKED)
 
-       CHECK_CXX_SOURCE_RUNS("
+       check_cxx_source_compiles("
        #include <libkern/OSAtomic.h>
 
        int main()
@@ -136,7 +164,8 @@ ELSE()
        }
        " _OPENTHREADS_ATOMIC_USE_BSD_ATOMIC)
 
-       IF(NOT _OPENTHREADS_ATOMIC_USE_GCC_BUILTINS AND
+       IF(NOT _OPENTHREADS_ATOMIC_USE_STD_ATOMIC AND
+          NOT _OPENTHREADS_ATOMIC_USE_GCC_BUILTINS AND
           NOT _OPENTHREADS_ATOMIC_USE_MIPOSPRO_BUILTINS AND
           NOT _OPENTHREADS_ATOMIC_USE_SUN AND
           NOT _OPENTHREADS_ATOMIC_USE_WIN32_INTERLOCKED AND
@@ -150,6 +179,9 @@ ELSE()
           # In this case we prefer the GCC_BUILTINS
           SET(_OPENTHREADS_ATOMIC_USE_GCC_BUILTINS 1)
           SET(_OPENTHREADS_ATOMIC_USE_WIN32_INTERLOCKED 0)
+       ELSEIF (_OPENTHREADS_ATOMIC_USE_STD_ATOMIC AND _OPENTHREADS_ATOMIC_USE_WIN32_INTERLOCKED)
+           SET(_OPENTHREADS_ATOMIC_USE_STD_ATOMIC 1)
+           SET(_OPENTHREADS_ATOMIC_USE_WIN32_INTERLOCKED 0)
        ENDIF()
 
     ENDIF()
