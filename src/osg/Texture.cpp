@@ -54,6 +54,22 @@
 #define GL_RGB565                         0x8D62
 #endif
 
+#ifndef GL_DEPTH32F_STENCIL8
+#define GL_DEPTH32F_STENCIL8 0x8CAD
+#endif
+
+#ifndef GL_FLOAT_32_UNSIGNED_INT_24_8_REV
+#define GL_FLOAT_32_UNSIGNED_INT_24_8_REV 0x8DAD
+#endif
+
+#ifndef GL_DEPTH24_STENCIL8
+#define GL_DEPTH24_STENCIL8 0x88F0
+#endif
+
+#ifndef GL_DEPTH_STENCIL_EXT
+#define GL_DEPTH_STENCIL_EXT 0x84F9
+#endif
+
 #if 0
     #define CHECK_CONSISTENCY checkConsistency();
 #else
@@ -184,8 +200,8 @@ InternalPixelRelations sizedDepthAndStencilInternalFormats[] = {
     , { GL_DEPTH_COMPONENT24                   , GL_DEPTH_COMPONENT  , GL_UNSIGNED_INT                              }
     , { GL_DEPTH_COMPONENT32                   , GL_DEPTH_COMPONENT  , GL_UNSIGNED_INT                              }
     , { GL_DEPTH_COMPONENT32F                  , GL_DEPTH_COMPONENT  , GL_FLOAT                                     }
- // , { GL_DEPTH24_STENCIL8                    , GL_DEPTH_STENCIL    , GL_UNSIGNED_INT_24_8                         }
- // , { GL_DEPTH32F_STENCIL8                   , GL_DEPTH_STENCIL    , GL_FLOAT_32_UNSIGNED_INT_24_8_REV            }
+    , { GL_DEPTH24_STENCIL8                    , GL_DEPTH_STENCIL_EXT, GL_UNSIGNED_INT_24_8_EXT                 }
+    , { GL_DEPTH32F_STENCIL8                   , GL_DEPTH_STENCIL_EXT, GL_FLOAT_32_UNSIGNED_INT_24_8_REV        }
 };
 
 InternalPixelRelations compressedInternalFormats[] = {
@@ -247,11 +263,19 @@ InternalPixelRelations compressedInternalFormats[] = {
 
 bool isSizedInternalFormat(GLint internalFormat)
 {
-    const size_t formatsCount = sizeof(sizedInternalFormats) / sizeof(sizedInternalFormats[0]);
+    size_t formatsCount = sizeof(sizedInternalFormats) / sizeof(sizedInternalFormats[0]);
 
     for (size_t i=0; i < formatsCount; ++i)
     {
         if((GLenum)internalFormat == sizedInternalFormats[i].sizedInternalFormat)
+            return true;
+    }
+
+    formatsCount = sizeof(sizedDepthAndStencilInternalFormats) / sizeof(sizedDepthAndStencilInternalFormats[0]);
+
+    for (size_t i=0; i < formatsCount; ++i)
+    {
+        if((GLenum)internalFormat == sizedDepthAndStencilInternalFormats[i].sizedInternalFormat)
             return true;
     }
 
