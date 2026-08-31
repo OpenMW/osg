@@ -46,6 +46,10 @@ typedef char TCHAR;
 
 #else // unix
 
+#ifdef __unix__
+    #include <dlfcn.h>
+#endif
+
 #if defined( __APPLE__ )
     // I'm not sure how we would handle this in raw Darwin
     // without the AvailablilityMacros.
@@ -1179,6 +1183,20 @@ bool osgDB::containsCurrentWorkingDirectoryReference(const FilePathList& paths)
 
     void osgDB::appendPlatformSpecificLibraryFilePaths(FilePathList& filepath)
     {
+#ifdef __unix__
+        auto* application = dlopen(nullptr, RTLD_LAZY | RTLD_NOLOAD);
+        Dl_serinfo searchInfoSize;
+        dlinfo(application, RTLD_DI_SERINFOSIZE, &searchInfoSize);
+        std::vector<char> searchInfoBuffer(searchInfoSize.dls_size);
+        dlinfo(application, RTLD_DI_SERINFOSIZE, searchInfoBuffer.data());
+        dlinfo(application, RTLD_DI_SERINFO, searchInfoBuffer.data());
+        auto* searchInfo = reinterpret_cast<Dl_serinfo*>(searchInfoBuffer.data());
+
+        for (size_t i = 0; i < searchInfo->dls_cnt; ++i)
+        {
+            filepath.emplace_back(searchInfo->dls_serpath[i].dls_name);
+        }
+#endif
 
        char* ptr;
        if( (ptr = getenv( "LD_LIBRARY_PATH" )) )

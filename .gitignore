@@ -1,25 +1,25 @@
-doc/all_Doxyfile
-doc/auto_Doxyfile
-doc/core_Doxyfile
-doc/openscenegraph.doxyfile
-doc/openthreads.doxyfile
+**/doc/all_Doxyfile
+**/doc/auto_Doxyfile
+**/doc/core_Doxyfile
+**/doc/openscenegraph.doxyfile
+**/doc/openthreads.doxyfile
 
-doc/OpenSceneGraphReferenceDocs/
-doc/OpenThreadsReferenceDocs/
-doc/*.chm
+**/doc/OpenSceneGraphReferenceDocs/
+**/doc/OpenThreadsReferenceDocs/
+**/doc/*.chm
 
 CMakeDoxyfile.in
 CMakeDoxygenDefaults.cmake
 
 cmake_uninstall.cmake
 
-include/OpenThreads/Config
-include/OpenThreads/Version
-include/osg/Config
-include/osg/GL
-include/osg/Version
-include/osgQt/Version
-src/osgQt/__
+**/include/OpenThreads/Config
+**/include/OpenThreads/Version
+**/include/osg/Config
+**/include/osg/GL
+**/include/osg/Version
+**/include/osgQt/Version
+**/src/osgQt/__
 
 lib/
 bin/
@@ -33,6 +33,10 @@ Makefile
 cmake_install.cmake
 install_manifest*.txt
 .cmake/*
+*.ninja
+.ninja_deps
+.ninja_log
+
 
 
 # Compiled Object files
