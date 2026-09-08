@@ -458,3 +458,5 @@ SET(TARGET_EXTERNAL_LIBRARIES
 #INCLUDE(ModuleInstall OPTIONAL)
 
 SETUP_LIBRARY(${LIB_NAME})
+
+target_compile_features(${LIB_NAME} PUBLIC cxx_std_11)

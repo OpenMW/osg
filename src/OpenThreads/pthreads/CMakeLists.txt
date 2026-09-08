@@ -18,7 +18,6 @@ SET(TARGET_SRC
     PThreadMutexPrivateData.h
     PThreadPrivateData.h
     ../common/Version.cpp
-    ../common/Atomic.cpp
 )
 
 IF(CYGWIN)  # define for pthread_{yield,getconcurrency,setconcurrency}
@@ -179,4 +178,7 @@ ELSE()
         )
     ENDIF()
 ENDIF()
+
+target_compile_features(${LIB_NAME} PUBLIC cxx_std_11)
+
 #commented out# INCLUDE(ModuleInstall OPTIONAL)

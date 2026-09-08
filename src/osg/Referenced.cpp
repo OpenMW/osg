@@ -120,19 +120,9 @@ static int s_numObjects = 0;
 #endif
 
 Referenced::Referenced():
-#if defined(_OSG_REFERENCED_USE_ATOMIC_OPERATIONS)
     _observerSet(0),
     _refCount(0)
-#else
-    _refMutex(0),
-    _refCount(0),
-    _observerSet(0)
-#endif
 {
-#if !defined(_OSG_REFERENCED_USE_ATOMIC_OPERATIONS)
-    _refMutex = new OpenThreads::Mutex;
-#endif
-
 #ifdef DEBUG_OBJECT_ALLOCATION_DESTRUCTION
     {
         OpenThreads::ScopedLock<OpenThreads::Mutex> lock(getNumObjectMutex());
@@ -144,19 +134,9 @@ Referenced::Referenced():
 }
 
 Referenced::Referenced(bool /*threadSafeRefUnref*/):
-#if defined(_OSG_REFERENCED_USE_ATOMIC_OPERATIONS)
     _observerSet(0),
     _refCount(0)
-#else
-    _refMutex(0),
-    _refCount(0),
-    _observerSet(0)
-#endif
 {
-#if !defined(_OSG_REFERENCED_USE_ATOMIC_OPERATIONS)
-    _refMutex = new OpenThreads::Mutex;
-#endif
-
 #ifdef DEBUG_OBJECT_ALLOCATION_DESTRUCTION
     {
         OpenThreads::ScopedLock<OpenThreads::Mutex> lock(getNumObjectMutex());
@@ -167,19 +147,9 @@ Referenced::Referenced(bool /*threadSafeRefUnref*/):
 }
 
 Referenced::Referenced(const Referenced&):
-#if defined(_OSG_REFERENCED_USE_ATOMIC_OPERATIONS)
     _observerSet(0),
     _refCount(0)
-#else
-    _refMutex(0),
-    _refCount(0),
-    _observerSet(0)
-#endif
 {
-#if !defined(_OSG_REFERENCED_USE_ATOMIC_OPERATIONS)
-    _refMutex = new OpenThreads::Mutex;
-#endif
-
 #ifdef DEBUG_OBJECT_ALLOCATION_DESTRUCTION
     {
         OpenThreads::ScopedLock<OpenThreads::Mutex> lock(getNumObjectMutex());
@@ -209,20 +179,11 @@ Referenced::~Referenced()
     signalObserversAndDelete(true, false);
 
     // delete the ObserverSet
-#if defined(_OSG_REFERENCED_USE_ATOMIC_OPERATIONS)
     if (_observerSet.get()) static_cast<ObserverSet*>(_observerSet.get())->unref();
-#else
-    if (_observerSet) static_cast<ObserverSet*>(_observerSet)->unref();
-#endif
-
-#if !defined(_OSG_REFERENCED_USE_ATOMIC_OPERATIONS)
-    if (_refMutex) delete _refMutex;
-#endif
 }
 
 ObserverSet* Referenced::getOrCreateObserverSet() const
 {
-#if defined(_OSG_REFERENCED_USE_ATOMIC_OPERATIONS)
     ObserverSet* observerSet = static_cast<ObserverSet*>(_observerSet.get());
     while (0 == observerSet)
     {
@@ -237,27 +198,6 @@ ObserverSet* Referenced::getOrCreateObserverSet() const
         observerSet = static_cast<ObserverSet*>(_observerSet.get());
     }
     return observerSet;
-#else
-    if (_refMutex)
-    {
-        OpenThreads::ScopedLock<OpenThreads::Mutex> lock(*_refMutex);
-        if (!_observerSet)
-        {
-            _observerSet = new ObserverSet(this);
-            static_cast<ObserverSet*>(_observerSet)->ref();
-        }
-        return static_cast<ObserverSet*>(_observerSet);
-    }
-    else
-    {
-        if (!_observerSet)
-        {
-            _observerSet = new ObserverSet(this);
-            static_cast<ObserverSet*>(_observerSet)->ref();
-        }
-        return static_cast<ObserverSet*>(_observerSet);
-    }
-#endif
 }
 
 void Referenced::addObserver(Observer* observer) const
@@ -272,11 +212,7 @@ void Referenced::removeObserver(Observer* observer) const
 
 void Referenced::signalObserversAndDelete(bool signalDelete, bool doDelete) const
 {
-#if defined(_OSG_REFERENCED_USE_ATOMIC_OPERATIONS)
     ObserverSet* observerSet = static_cast<ObserverSet*>(_observerSet.get());
-#else
-    ObserverSet* observerSet = static_cast<ObserverSet*>(_observerSet);
-#endif
 
     if (observerSet && signalDelete)
     {
@@ -295,19 +231,7 @@ void Referenced::signalObserversAndDelete(bool signalDelete, bool doDelete) cons
 
 int Referenced::unref_nodelete() const
 {
-#if defined(_OSG_REFERENCED_USE_ATOMIC_OPERATIONS)
     return --_refCount;
-#else
-    if (_refMutex)
-    {
-        OpenThreads::ScopedLock<OpenThreads::Mutex> lock(*_refMutex);
-        return --_refCount;
-    }
-    else
-    {
-        return --_refCount;
-    }
-#endif
 }
 
 void Referenced::deleteUsingDeleteHandler() const

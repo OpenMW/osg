@@ -12,8 +12,6 @@ SET(OSG_GLES2_AVAILABLE ON CACHE BOOL "GLES2 is what Emscripten uses")
 SET(OSG_WINDOWING_SYSTEM "None" CACHE STRING "Unavailable under Emscripten")
 SET(DYNAMIC_OPENTHREADS OFF CACHE BOOL "Link OpenThreads statically")
 SET(DYNAMIC_OPENSCENEGRAPH OFF CACHE BOOL "Link OpenSceneGraph statically")
-# Prevent CMake configuration error.
-SET(_OPENTHREADS_ATOMIC_USE_GCC_BUILTINS_EXITCODE "0" CACHE STRING "Prevent cfg error")
 
 # Set special build flags:
 # * -O3: make compact binary, critical for web

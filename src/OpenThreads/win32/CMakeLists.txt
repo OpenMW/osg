@@ -23,9 +23,10 @@ ADD_LIBRARY(${LIB_NAME}
     Win32ThreadBarrier.cpp
     Win32ThreadPrivateData.h
     ../common/Version.cpp
-    ../common/Atomic.cpp
     ${OPENTHREADS_VERSIONINFO_RC}
 )
+
+target_compile_features(${LIB_NAME} PUBLIC cxx_std_11)
 
 SET_TARGET_PROPERTIES(${LIB_NAME} PROPERTIES FOLDER "OSG Core")
 IF(OPENTHREADS_SONAMES)
