@@ -820,6 +820,15 @@ void VertexArrayState::setInterleavedArrays(osg::State& /*state*/, GLenum format
 
 void VertexArrayState::dirty()
 {
+    // Reached from Drawable::dirtyGLObjects() when one of the drawable's arrays was replaced. Any other array
+    // sharing a buffer object with it may move inside that buffer when it is next compiled, and a vertex array
+    // object keeps the pointers recorded at dispatch time, so every active array has to be dispatched again,
+    // not only the ones whose array or modified count changed.
+    for(ActiveDispatchers::iterator itr = _activeDispatchers.begin(); itr != _activeDispatchers.end(); ++itr)
+    {
+        (*itr)->modifiedCount = 0xffffffff;
+    }
+
     setRequiresSetArrays(true);
 }
 
