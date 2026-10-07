@@ -7,7 +7,7 @@ includedir=${prefix}/@RELATIVE_INCLUDEDIR@
 
 Name: openscenegraph-osgVolume
 Description: Volume library for Openscenegraph
-Version: @OPENSCENEGRAPH_VERSION@
+Version: @OSGOS_VERSION_STRING@
 Requires: openscenegraph-osgUtil openscenegraph-osgDB openscenegraph-osgGA openscenegraph-osg openthreads
 Conflicts:
 Libs: -L${libdir} -losgVolume@CMAKE_BUILD_POSTFIX@

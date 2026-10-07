@@ -7,7 +7,7 @@ includedir=${prefix}/@RELATIVE_INCLUDEDIR@
 
 Name: openscenegraph-osgParticle
 Description: Particle system library for Openscenegraph
-Version: @OPENSCENEGRAPH_VERSION@
+Version: @OSGOS_VERSION_STRING@
 Requires: openscenegraph-osgDB openscenegraph-osgUtil openscenegraph-osg openthreads
 Conflicts:
 Libs: -L${libdir} -losgParticle@CMAKE_BUILD_POSTFIX@

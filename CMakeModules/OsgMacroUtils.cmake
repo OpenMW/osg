@@ -310,6 +310,7 @@ MACRO(SETUP_EXE IS_COMMANDLINE_APP)
             # Short Version is the "marketing version". It is the version
             # the user sees in an information panel.
             SET(MACOSX_BUNDLE_SHORT_VERSION_STRING "${OPENSCENEGRAPH_MAJOR_VERSION}.${OPENSCENEGRAPH_MINOR_VERSION}.${OPENSCENEGRAPH_PATCH_VERSION}")
+            SET(MACOSX_BUNDLE_INFO_STRING "OpenSceneGraph ${OSGOS_VERSION_STRING}")
             # Bundle version is the version the OS looks at.
             SET(MACOSX_BUNDLE_BUNDLE_VERSION "${OPENSCENEGRAPH_MAJOR_VERSION}.${OPENSCENEGRAPH_MINOR_VERSION}.${OPENSCENEGRAPH_PATCH_VERSION}")
             SET(MACOSX_BUNDLE_GUI_IDENTIFIER "org.openscenegraph.${TARGET_TARGETNAME}" )

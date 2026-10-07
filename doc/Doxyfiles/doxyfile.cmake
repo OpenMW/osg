@@ -5,7 +5,7 @@
 #---------------------------------------------------------------------------
 DOXYFILE_ENCODING      = UTF-8
 PROJECT_NAME           = OpenSceneGraph
-PROJECT_NUMBER         = ${OPENSCENEGRAPH_VERSION}
+PROJECT_NUMBER         = ${OSGOS_VERSION_STRING}
 OUTPUT_DIRECTORY       = "${PROJECT_BINARY_DIR}/doc/"
 CREATE_SUBDIRS         = NO
 OUTPUT_LANGUAGE        = English
@@ -146,7 +146,7 @@ GENERATE_DOCSET        = NO
 DOCSET_FEEDNAME        = "Doxygen generated docs"
 DOCSET_BUNDLE_ID       = org.doxygen.Project
 GENERATE_HTMLHELP      = ${GENERATE_HTMLHELP}
-CHM_FILE               = "../${CMAKE_PROJECT_NAME}ReferenceDocs-${OPENSCENEGRAPH_VERSION}.chm"
+CHM_FILE               = "../${CMAKE_PROJECT_NAME}ReferenceDocs-${OSGOS_VERSION_STRING}.chm"
 HHC_LOCATION           = "${HTML_HELP_COMPILER}"
 GENERATE_CHI           = NO
 CHM_INDEX_ENCODING     =

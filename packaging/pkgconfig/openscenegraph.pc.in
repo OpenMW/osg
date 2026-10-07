@@ -7,7 +7,7 @@ includedir=${prefix}/@RELATIVE_INCLUDEDIR@
 
 Name: openscenegraph
 Description: 3D scenegraph
-Version: @OPENSCENEGRAPH_VERSION@
+Version: @OSGOS_VERSION_STRING@
 Requires: openthreads
 Conflicts:
 Libs: -L${libdir} -losg@CMAKE_BUILD_POSTFIX@ \

@@ -16,11 +16,11 @@ BEGIN
         BLOCK "040904b0"
         BEGIN
             VALUE "FileDescription", "OpenSceneGraph Binary"
-            VALUE "FileVersion", "${OPENSCENEGRAPH_MAJOR_VERSION}, ${OPENSCENEGRAPH_MINOR_VERSION}, ${OPENSCENEGRAPH_PATCH_VERSION}, ${OPENSCENEGRAPH_SOVERSION}"
+            VALUE "FileVersion", "${OSGOS_VERSION_STRING}"
             VALUE "InternalName", "OSG"
             VALUE "LegalCopyright", "Copyright (C) 2009"
             VALUE "OriginalFilename", ""
-            VALUE "ProductName", "OpenSceneGraph"
+            VALUE "ProductName", "OpenSceneGraph (OSGoS)"
             VALUE "ProductVersion", "${OPENSCENEGRAPH_MAJOR_VERSION}, ${OPENSCENEGRAPH_MINOR_VERSION}, ${OPENSCENEGRAPH_PATCH_VERSION}, ${OPENSCENEGRAPH_SOVERSION}"
         END
     END

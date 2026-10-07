@@ -7,7 +7,7 @@ includedir=${prefix}/@RELATIVE_INCLUDEDIR@
 
 Name: openscenegraph-osgManipulator
 Description: Manipulator library for Openscenegraph
-Version: @OPENSCENEGRAPH_VERSION@
+Version: @OSGOS_VERSION_STRING@
 Requires: openscenegraph-osgUtil openscenegraph-osgGA openscenegraph-osg openthreads
 Conflicts:
 Libs: -L${libdir} -losgManipulator@CMAKE_BUILD_POSTFIX@

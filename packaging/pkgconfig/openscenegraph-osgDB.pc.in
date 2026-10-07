@@ -7,7 +7,7 @@ includedir=${prefix}/@RELATIVE_INCLUDEDIR@
 
 Name: openscenegraph-osgDB
 Description: File format reading library for Openscenegraph
-Version: @OPENSCENEGRAPH_VERSION@
+Version: @OSGOS_VERSION_STRING@
 Requires: openscenegraph-osg openthreads
 Conflicts:
 Libs: -L${libdir} -losgDB@CMAKE_BUILD_POSTFIX@
