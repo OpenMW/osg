@@ -421,15 +421,6 @@ void osgParticle::ParticleSystem::drawImplementation(osg::RenderInfo& renderInfo
                         texcoords.push_back(t1);
                         texcoords.push_back(t2);
 
-#if defined(OSG_GL1_AVAILABLE) || defined(OSG_GL2_AVAILABLE) || defined(OSG_GLES1_AVAILABLE)
-                        const unsigned int count = 4;
-                        const GLenum mode = GL_QUADS;
-
-                        // Last point (and texcoord) of quad
-                        vertices.push_back(c3);
-                        texcoords.push_back(t3);
-#else
-                        // No GL_QUADS mode on OpenGL 3 and upper / GLES2 and upper
                         const unsigned int count = 6;
                         const GLenum mode = GL_TRIANGLES;
 
@@ -440,7 +431,7 @@ void osgParticle::ParticleSystem::drawImplementation(osg::RenderInfo& renderInfo
                         texcoords.push_back(t2);
                         texcoords.push_back(t3);
                         texcoords.push_back(t0);
-#endif
+
                         for (unsigned int j = 0; j < count; ++j)
                             colors.push_back(color);
 
