@@ -18,11 +18,14 @@
 
 #include "UnitTestFramework.h"
 
+#include <osg/Image>
 #include <osg/Matrixd>
 #include <osg/Matrixf>
 #include <osg/Vec3d>
 #include <osg/Vec3>
+#include <cstring>
 #include <sstream>
+#include <vector>
 
 namespace osg
 {
@@ -85,6 +88,41 @@ OSGUTX_BEGIN_TESTSUITE(Vec3)
 OSGUTX_END_TESTSUITE
 
 OSGUTX_AUTOREGISTER_TESTSUITE_AT(Vec3, root.osg)
+
+///////////////////////////////////////////////////////////////////////////////
+//
+//  Compressed Image Tests
+//
+class CompressedImageTestFixture
+{
+public:
+    void testBPTCImageCopy(const osgUtx::TestContext&);
+};
+
+void CompressedImageTestFixture::testBPTCImageCopy(const osgUtx::TestContext&)
+{
+    const unsigned int expectedSize
+        = osg::Image::computeImageSizeInBytes(
+            1024, 1024, 1, GL_COMPRESSED_RGBA_BPTC_UNORM, GL_UNSIGNED_BYTE, 1);
+    OSGUTX_TEST_F(expectedSize == 1024u * 1024u)
+
+    std::vector<unsigned char> pixels(expectedSize, 0x5a);
+    osg::ref_ptr<osg::Image> image = new osg::Image;
+    image->setImage(1024, 1024, 1, GL_COMPRESSED_RGBA_BPTC_UNORM, GL_COMPRESSED_RGBA_BPTC_UNORM, GL_UNSIGNED_BYTE,
+        pixels.data(), osg::Image::NO_DELETE, 1);
+
+    osg::ref_ptr<osg::Image> copy = new osg::Image(*image, osg::CopyOp::DEEP_COPY_ALL);
+    OSGUTX_TEST_F(image->getImageSizeInBytes() == expectedSize)
+    OSGUTX_TEST_F(image->getTotalSizeInBytes() == expectedSize)
+    OSGUTX_TEST_F(copy->getTotalSizeInBytes() == expectedSize)
+    OSGUTX_TEST_F(std::memcmp(image->data(), copy->data(), expectedSize) == 0)
+}
+
+OSGUTX_BEGIN_TESTSUITE(CompressedImage)
+    OSGUTX_ADD_TESTCASE(CompressedImageTestFixture, testBPTCImageCopy)
+OSGUTX_END_TESTSUITE
+
+OSGUTX_AUTOREGISTER_TESTSUITE_AT(CompressedImage, root.osg)
 
 ///////////////////////////////////////////////////////////////////////////////
 // 

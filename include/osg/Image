@@ -331,11 +331,22 @@ class OSG_EXPORT Image : public BufferData
         inline unsigned int getRowStepInBytes() const { return computeRowWidthInBytes(_rowLength==0?_s:_rowLength,_pixelFormat,_dataType,_packing); }
 
         /** Return the number of bytes each image (_s*_t) of pixels occupies. */
-        inline unsigned int getImageSizeInBytes() const { return getRowSizeInBytes()*_t; }
+        inline unsigned int getImageSizeInBytes() const
+        {
+            if (computeBlockSize(_pixelFormat, 0) > 0)
+                return computeImageSizeInBytes(_s, _t, 1, _pixelFormat, _dataType, _packing);
+            return getRowSizeInBytes() * _t;
+        }
 
         /** Return the number of bytes between each successive image.
           * Note, getImageSizeInBytes() will only equal getImageStepInBytes() when isDataContiguous() return true. */
-        inline unsigned int getImageStepInBytes() const { return getRowStepInBytes()*_t; }
+        inline unsigned int getImageStepInBytes() const
+        {
+            if (computeBlockSize(_pixelFormat, 0) > 0)
+                return computeImageSizeInBytes(_rowLength == 0 ? _s : _rowLength, _t, 1, _pixelFormat, _dataType,
+                    _packing);
+            return getRowStepInBytes() * _t;
+        }
 
         /** Return the number of bytes the whole row/image/volume of pixels occupies. */
         inline unsigned int getTotalSizeInBytes() const { return getImageSizeInBytes()*_r; }
