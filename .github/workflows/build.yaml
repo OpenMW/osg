@@ -2,8 +2,6 @@ name: Build
 
 on:
   push:
-    branches:
-      - '3.6'
   pull_request:
 
 concurrency:
@@ -12,6 +10,7 @@ concurrency:
 
 jobs:
   unit-tests:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: ubuntu-latest
 
     steps:
@@ -20,7 +19,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y libgl-dev libx11-dev libxext-dev libxt-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libxmu-dev libxrender-dev libxfixes-dev libxdamage-dev libxcomposite-dev libxkbcommon-dev libfontconfig1-dev libfreetype-dev
+        sudo apt-get install -y libgl-dev libx11-dev libxext-dev libxt-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libxmu-dev libxrender-dev libxfixes-dev libxdamage-dev libxcomposite-dev libxkbcommon-dev libfontconfig1-dev libfreetype-dev libjpeg-dev libpng-dev zlib1g-dev libcollada-dom-dev libxml2-dev
 
     - name: Configure
       run: >
@@ -34,17 +33,28 @@ jobs:
         -D BUILD_OSG_EXAMPLES=ON
         -D BUILD_OSG_APPLICATIONS=OFF
         -D BUILD_OSG_PLUGINS_BY_DEFAULT=OFF
+        -D BUILD_OSG_PLUGIN_OSG=ON
+        -D BUILD_OSG_PLUGIN_DDS=ON
+        -D BUILD_OSG_PLUGIN_TGA=ON
+        -D BUILD_OSG_PLUGIN_BMP=ON
+        -D BUILD_OSG_PLUGIN_JPEG=ON
+        -D BUILD_OSG_PLUGIN_PNG=ON
+        -D BUILD_OSG_PLUGIN_FREETYPE=ON
+        -D BUILD_OSG_PLUGIN_DAE=ON
+        -D BUILD_OSG_PLUGIN_KTX=ON
+        -D BUILD_OSG_DEPRECATED_SERIALIZERS=OFF
         -D OSG_FIND_3RD_PARTY_DEPS=OFF
         -D DYNAMIC_OPENTHREADS=ON
         -D DYNAMIC_OPENSCENEGRAPH=ON
 
     - name: Build unit tests
-      run: cmake --build ${{ github.workspace }}/build-tests --target example_osgunittests --parallel
+      run: cmake --build ${{ github.workspace }}/build-tests --target example_osgunittests osgdb_osg osgdb_dds osgdb_tga osgdb_bmp osgdb_jpeg osgdb_png osgdb_freetype osgdb_dae osgdb_ktx --parallel
 
     - name: Run unit tests
       run: ${{ github.workspace }}/build-tests/bin/osgunittests qt
 
   windows:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
     strategy:
       fail-fast: true
 
