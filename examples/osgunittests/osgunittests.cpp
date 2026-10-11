@@ -722,5 +722,5 @@ int main( int argc, char** argv )
 
     osgUtx::TestGraph::instance().root()->accept( runner );
 
-    return 0;
+    return runner.succeeded() ? 0 : 1;
 }

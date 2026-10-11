@@ -457,6 +457,12 @@ public:
         return _records.back();
     }
 
+    bool succeeded() const{
+        for (std::list<TestRecord>::const_iterator record = _records.begin(); record != _records.end(); ++record)
+            if (record->result_ != TestRecord::Success) return false;
+        return true;
+    }
+
 private:
     std::list<TestRecord>    _records;
 
@@ -492,6 +498,7 @@ public:
     bool visitEnter( TestSuite* pSuite );
     bool visit( TestCase* pTest );
     bool visitLeave( TestSuite* pSuite );
+    bool succeeded() const { return _db.succeeded(); }
 
 
 protected:

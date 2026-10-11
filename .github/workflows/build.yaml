@@ -1,14 +1,49 @@
 name: Build
 
 on:
-- push
-- pull_request
+  push:
+    branches:
+      - '3.6'
+  pull_request:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libgl-dev libx11-dev libxext-dev libxt-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libxmu-dev libxrender-dev libxfixes-dev libxdamage-dev libxcomposite-dev libxkbcommon-dev libfontconfig1-dev libfreetype-dev
+
+    - name: Configure
+      run: >
+        cmake
+        -B ${{ github.workspace }}/build-tests
+        -D CMAKE_BUILD_TYPE=Release
+        -D CMAKE_CXX_STANDARD=11
+        -D CMAKE_CXX_FLAGS="-fsanitize=address -fno-omit-frame-pointer"
+        -D CMAKE_EXE_LINKER_FLAGS=-fsanitize=address
+        -D CMAKE_SHARED_LINKER_FLAGS=-fsanitize=address
+        -D BUILD_OSG_EXAMPLES=ON
+        -D BUILD_OSG_APPLICATIONS=OFF
+        -D BUILD_OSG_PLUGINS_BY_DEFAULT=OFF
+        -D OSG_FIND_3RD_PARTY_DEPS=OFF
+        -D DYNAMIC_OPENTHREADS=ON
+        -D DYNAMIC_OPENSCENEGRAPH=ON
+
+    - name: Build unit tests
+      run: cmake --build ${{ github.workspace }}/build-tests --target example_osgunittests --parallel
+
+    - name: Run unit tests
+      run: ${{ github.workspace }}/build-tests/bin/osgunittests qt
+
   windows:
     strategy:
       fail-fast: true
