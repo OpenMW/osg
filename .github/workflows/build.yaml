@@ -22,7 +22,7 @@ jobs:
       run: >
         cmake
         -B ${{ github.workspace }}/build-tests
-        -D CMAKE_BUILD_TYPE=Release
+        -D CMAKE_BUILD_TYPE=RelWithDebInfo
         -D CMAKE_CXX_STANDARD=11
         -D CMAKE_CXX_FLAGS="-fsanitize=address -fno-omit-frame-pointer"
         -D CMAKE_EXE_LINKER_FLAGS=-fsanitize=address
