@@ -45,7 +45,7 @@ jobs:
         -D DYNAMIC_OPENSCENEGRAPH=ON
 
     - name: Build unit tests
-      run: cmake --build ${{ github.workspace }}/build-tests --target example_osgunittests osgdb_osg osgdb_dds osgdb_tga osgdb_bmp osgdb_jpeg osgdb_png osgdb_freetype osgdb_dae osgdb_ktx --parallel
+      run: cmake --build ${{ github.workspace }}/build-tests --target example_osgunittests osgdb_osg osgdb_dds osgdb_tga osgdb_bmp osgdb_jpeg osgdb_png osgdb_freetype osgdb_dae osgdb_ktx --parallel $(nproc)
 
     - name: Run unit tests
       run: ${{ github.workspace }}/build-tests/bin/osgunittests qt
